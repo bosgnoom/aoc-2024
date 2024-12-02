@@ -1,1 +1,3 @@
 # aoc-2024
+
+My attempt on Advent of Code 2024. This is for my own reference...
