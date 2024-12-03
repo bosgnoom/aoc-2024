@@ -1,5 +1,5 @@
 import pytest
-from opdracht_1b import *
+from opdracht_1b import import_file, calc_similarity
 
 
 @pytest.fixture
@@ -12,13 +12,13 @@ def get_sample_data():
 
 @pytest.fixture
 def get_left_row(get_sample_data):
-    a, b = get_sample_data
+    a, _ = get_sample_data
     return a
 
 
 @pytest.fixture
 def get_right_row(get_sample_data):
-    a, b = get_sample_data
+    _, b = get_sample_data
     return b
 
 
