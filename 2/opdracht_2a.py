@@ -31,7 +31,7 @@ def check_differences(row):
             and (all([abs(r) <= 3 for r in row])))
 
 
-def main(filename):
+def opdracht_a(filename):
     lines = read_file(filename)
 
     scores = []
@@ -51,10 +51,5 @@ def main(filename):
     return sum(scores)
 
 
-def test_a():
-    assert main('2/example.txt') == 2
-
-
 if __name__ == "__main__":
-    test_a()
-    main('2/puzzle_input.txt') == 356
+    assert opdracht_a('2/puzzle_input.txt') == 356

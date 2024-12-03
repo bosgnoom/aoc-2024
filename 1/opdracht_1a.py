@@ -1,7 +1,3 @@
-import csv
-import pprint
-
-
 def import_file(filename):
     # Read file
     with open(filename) as f:
@@ -19,7 +15,7 @@ def calc_differences(a, b):
     # the lists are sorted first
     diffs = []
     for a, b in zip(sorted(a), sorted(b)):
-        diffs.append(abs(a-b))
+        diffs.append(abs(a - b))
 
     return diffs
 

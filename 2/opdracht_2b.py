@@ -19,7 +19,7 @@ def check_differences_damperer(row):
     return False
 
 
-def main(filename):
+def opdracht_b(filename):
     lines = read_file(filename)
 
     scores = []
@@ -37,10 +37,5 @@ def main(filename):
     return sum(scores)
 
 
-def test_b():
-    assert main('2/example.txt') == 4
-
-
 if __name__ == "__main__":
-    test_b()
-    assert main('2/puzzle_input.txt') == 413
+    assert opdracht_b('2/puzzle_input.txt') == 413

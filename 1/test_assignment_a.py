@@ -1,4 +1,4 @@
-from opdracht_1a import *
+from opdracht_1a import import_file, calc_differences
 
 
 def test_1():
