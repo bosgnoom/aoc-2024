@@ -84,7 +84,7 @@ def walk_the_grid_many_times(grid: list[list], pos: tuple, dir: str) -> int:
 
         # Has the elf been here before?
         memory[(row, col)] += 1
-        if memory[(row, col)] > 512:
+        if memory[(row, col)] > 256:
             # If many times, it's stuck in a loop, exit
             # 256 is arbitrary chosen, in the first assignment
             # the maximum was 128...
@@ -147,9 +147,11 @@ def opdracht_6b(filename: str) -> None:
     # Loop over all possible positions where a . was in the grid
     loop_points = []
 
+    # Partial function, so static input parameters can be passed
     partial_func = partial(process_dot, grid=grid,
                            pos=pos, direction=direction)
 
+    # Doing the hard work here
     with Pool() as p:
         loop_points = p.map(partial_func, empty_positions)
 
@@ -159,4 +161,4 @@ def opdracht_6b(filename: str) -> None:
 
 
 if __name__ == "__main__":
-    opdracht_6b('6/input.txt')
+    assert opdracht_6b('6/input.txt') == 2188
