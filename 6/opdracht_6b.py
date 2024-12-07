@@ -162,3 +162,7 @@ def opdracht_6b(filename: str) -> None:
 
 if __name__ == "__main__":
     assert opdracht_6b('6/input.txt') == 2188
+
+    # For next time: let opdracht 6a return its path,
+    # because that are the only ones where an additional
+    # object will alter the path of the elf (initially)...
