@@ -58,7 +58,7 @@ def find_coords(grid: list[str], ant: str) -> list[tuple]:
     return coords
 
 
-def find_antinodes(grid: list[str], coords: list[tuple], ant: str) -> list[tuple]:
+def find_antinodes(grid: list[str], coords: list[tuple]) -> list[tuple]:
     """Finds coordinates of the antinodes
 
     Args:
@@ -74,7 +74,7 @@ def find_antinodes(grid: list[str], coords: list[tuple], ant: str) -> list[tuple
 
     # Find antinodes here
     for coord in itertools.combinations(coords, 2):
-        print(f'Checking coords for {ant}: {coord}')
+        print(f'Checking coords: {coord}')
 
         # Unpack coordinates
         r1, c1 = coord[0]
@@ -84,57 +84,117 @@ def find_antinodes(grid: list[str], coords: list[tuple], ant: str) -> list[tuple
         dr = r1 - r2
         dc = c1 - c2
 
-        # print(dr, dc)
-
-        # calculate new coords
+        # New coord
         r3 = r1 + dr
         c3 = c1 + dc
 
         r4 = r2 - dr
         c4 = c2 - dc
 
-        # print(r3, c3)
-        # print(r4, c4)
+        # Check whether within grid
+        if ((0 <= r3 < len(grid))
+                and (0 <= c3 < len(grid[0]))):
+            print(f'    Antinode found at {r3, c3}')
+            result.append((r3, c3))
 
-        try:
-            if ((r3 >= 0) and (r3 <= len(grid))
-                and (c3 >= 0) and (c3 <= len(grid[0]))
-                and (grid[r3][c3] == '.')
-                ):
-                print(f'    Antinode found at {r3, c3}')
-                result.append((r3, c3))
-            if ((r4 >= 0) and (r4 <= len(grid))
-                and (c4 >= 0) and (c4 <= len(grid[0]))
-                and (grid[r4][c4] == '.')
-                ):
-                print(f'    Antinode found at {r4, c4}')
-                result.append((r4, c4))
-        except IndexError as e:
-            print('Out of grid, bummer, why???')
-            print(r3, c3, r4, c4)
+        if ((0 <= r4 < len(grid))
+                and (0 <= c4 < len(grid[0]))):
+            print(f'    Antinode found at {r4, c4}')
+            result.append((r4, c4))
 
     # Return found antinodes
     return result
 
 
-def main():
+def find_antinodes_2(grid: list[str], coords: list[tuple]) -> list[tuple]:
+    """Finds coordinates of the antinodes
 
-    grid = read_puzzle('8/example.txt')
+    Args:
+        grid (list[str]): Our map
+        coords (list[tuple]): Coordinates of two antennae
 
-    total = 0
+    Returns:
+        list[tuple]: List of coordinates of the antinode if within grid
+    """
+
+    # Store antinodes
+    result = []
+
+    # Find antinodes here
+    for coord in itertools.combinations(coords, 2):
+        print(f'Checking coords: {coord}')
+
+        # Unpack coordinates
+        r1, c1 = coord[0]
+        r2, c2 = coord[1]
+
+        # calculate dx, dy
+        dr = r1 - r2
+        dc = c1 - c2
+
+        # Calculate ALONG the line of the two coordinates,
+        # Taking the entire size of the grid as range, so we
+        # won't end up too short
+        for n in range(50):
+            # calculate new coords, "up" and "down"
+            r3 = r1 + (n * dr)
+            c3 = c1 + (n * dc)
+
+            r4 = r2 - (n * dr)
+            c4 = c2 - (n * dc)
+
+            if ((0 <= r3 < len(grid))
+                    and 0 <= c3 < len(grid[0])):
+                print(f'    Antinode found at {r3, c3}')
+                result.append((r3, c3))
+            if ((r4 >= 0) and (r4 < len(grid))
+                and (c4 >= 0) and (c4 < len(grid[0]))
+                and True  # (grid[r4][c4] == '.')
+                ):
+                print(f'    Antinode found at {r4, c4}')
+                result.append((r4, c4))
+
+    # Return found antinodes
+    return result
+
+
+def main(filename):
+    grid = read_puzzle(filename)
+
+    total = []
+
     for a in find_antennae(grid):
 
         coords = find_coords(grid, a)
+        result = find_antinodes(grid, coords)
+        total += result
 
-        ret = find_antinodes(grid, coords, a)
+    print('\n-----------------')
+    print(f'Amount: {len(set(total))}')
 
-        # print(ret)
+    return total
 
-        total += len(ret)
-    print(f'\n-----------------\nTotal: {total}')
 
-    # 311 is too low
+def main2(filename):
+    grid = read_puzzle(filename)
+
+    total = []
+
+    for a in find_antennae(grid):
+
+        coords = find_coords(grid, a)
+        result = find_antinodes_2(grid, coords)
+        total += result
+
+    print('\n-----------------')
+    print(f'Amount: {len(set(total))}')
+
+    return total
 
 
 if __name__ == "__main__":
-    main()
+    # 311 is too low
+    # 323 too high
+    assert len(set(main('8/input.txt'))) == 318
+
+    assert len(set(main2('8/input.txt'))) == 1126
