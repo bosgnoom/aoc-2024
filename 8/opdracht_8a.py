@@ -58,7 +58,7 @@ def find_coords(grid: list[str], ant: str) -> list[tuple]:
     return coords
 
 
-def find_antinodes(grid: list[str], coords: list[tuple]) -> list[tuple]:
+def find_antinodes(grid: list[str], coords: list[tuple], ant: str) -> list[tuple]:
     """Finds coordinates of the antinodes
 
     Args:
@@ -74,7 +74,7 @@ def find_antinodes(grid: list[str], coords: list[tuple]) -> list[tuple]:
 
     # Find antinodes here
     for coord in itertools.combinations(coords, 2):
-        print(coord)
+        print(f'Checking coords for {ant}: {coord}')
 
         # Unpack coordinates
         r1, c1 = coord[0]
@@ -93,21 +93,21 @@ def find_antinodes(grid: list[str], coords: list[tuple]) -> list[tuple]:
         r4 = r2 - dr
         c4 = c2 - dc
 
-        print(r3, c3)
-        print(r4, c4)
+        # print(r3, c3)
+        # print(r4, c4)
 
         try:
             if ((r3 >= 0) and (r3 <= len(grid))
-                    and (c3 >= 0) and (c3 <= len(grid[0]))
-                    and (grid[r3][c3] == '#')
+                and (c3 >= 0) and (c3 <= len(grid[0]))
+                and (grid[r3][c3] == '.')
                 ):
-                print(f'Antinode found at {r3, c3}')
+                print(f'    Antinode found at {r3, c3}')
                 result.append((r3, c3))
             if ((r4 >= 0) and (r4 <= len(grid))
-                    and (c4 >= 0) and (c4 <= len(grid[0]))
-                    and (grid[r4][c4] == '#')
+                and (c4 >= 0) and (c4 <= len(grid[0]))
+                and (grid[r4][c4] == '.')
                 ):
-                print(f'Antinode found at {r4, c4}')
+                print(f'    Antinode found at {r4, c4}')
                 result.append((r4, c4))
         except IndexError as e:
             print('Out of grid, bummer, why???')
@@ -119,19 +119,21 @@ def find_antinodes(grid: list[str], coords: list[tuple]) -> list[tuple]:
 
 def main():
 
-    grid = read_puzzle('8/ex4.txt')
+    grid = read_puzzle('8/example.txt')
 
     total = 0
     for a in find_antennae(grid):
 
         coords = find_coords(grid, a)
 
-        ret = find_antinodes(grid, coords)
+        ret = find_antinodes(grid, coords, a)
 
-        print(ret)
+        # print(ret)
 
         total += len(ret)
     print(f'\n-----------------\nTotal: {total}')
+
+    # 311 is too low
 
 
 if __name__ == "__main__":
