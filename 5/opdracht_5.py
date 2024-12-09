@@ -28,7 +28,7 @@ def read_puzzle(filename: str) -> list:
         elif section_switch:
             order.append(line)
         else:
-            pages.append([int(l) for l in line.split(',')])
+            pages.append([int(ll) for ll in line.split(',')])
 
     ordering = []
     for o in order:
