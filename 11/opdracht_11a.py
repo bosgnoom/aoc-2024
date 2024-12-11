@@ -36,10 +36,10 @@ def update_stone(stone: int) -> list[int]:
 
 
 def main():
-    puzzle = read_puzzle('0 1 10 99 999')
+    # puzzle = read_puzzle('0 1 10 99 999')
     # 1 2024 1 0 9 9 2021976
 
-    # puzzle = read_puzzle('125 17')
+    puzzle = read_puzzle('125 17')
 
     # Initial arrangement:
     # 125 17
@@ -63,14 +63,14 @@ def main():
     # 2097446912 14168 4048 2 0 2 4 40 48 2024 40 48 80 96 2 8 6 7 6 0 3 2
 
     # Real input
-    # puzzle = read_puzzle('5 62914 65 972 0 805922 6521 1639064')
+    puzzle = read_puzzle('5 62914 65 972 0 805922 6521 1639064')
 
     row = puzzle
     # print(row)
     result = []
 
-    for blink in range(1):
-        logger.debug(f'Starting {blink}')
+    for blink in range(75):
+        logger.info(f'Starting {blink}')
 
         result = []
         for stone in row:
@@ -80,7 +80,8 @@ def main():
 
         # logger.info(f'{blink=}, length={len(result)}, unique={
         #             len(set(result))}, so {len(set(result)) / len(result):%}')
-        logger.info(row)
+    logger.info(result)
+    logger.info(len(row))
 
 
 if __name__ == "__main__":

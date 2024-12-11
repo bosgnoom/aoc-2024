@@ -1,86 +1,83 @@
-from functools import cache
-import coloredlogs
-from collections import Counter
+from collections import defaultdict
 import logging
+import coloredlogs
+
 logger = logging.getLogger(__name__)
-
-coloredlogs.install(level='INFO', logger=logger)
-
-
-def read_puzzle(puzzle: str) -> list[int]:
-    return [int(a) for a in puzzle.split(' ')]
+coloredlogs.install(level='DEBUG', logger=logger)
 
 
-@cache
-def update_stone(stone: int) -> list[int]:
-    stone_str = str(stone)
-    stone_len = len(stone_str)
-    logger.debug(f'Stone: {stone} ', end='')
+def read_puzzle(puzzle: str) -> list[str]:
+    """Converts puzzle into a list of strings
 
-    if (stone == 0):
-        # If 0, replace by 1
-        logger.debug('Found 0, return 1')
-        return [1]
-    elif (stone_len % 2 == 0):
-        # For even lengths, replace by two stones
-        # left half first, right half next
-        half = stone_len // 2
-        splitted = [int(stone_str[0:half]), int(stone_str[half:])]
-        logger.debug(f'Found even length, splitting stone into: {splitted}')
-        return splitted
-    else:
-        # No rules apply, return stone * 2024
-        logger.debug('No rules apply, returning 2024 * stone')
-        return [stone * 2024]
+    Args:
+        puzzle (str): puzzle
 
-    return -1
+    Returns:
+        list[str]: starting values
+    """
+    return [a for a in puzzle.split(' ')]
 
 
-def main():
-    puzzle = read_puzzle('0 1 10 99 999')
-    # 1 2024 1 0 9 9 2021976
+def main(puzzle: list[str], n: int) -> defaultdict:
+    """Runs main loop
 
-    puzzle = read_puzzle('125 17')
+    Args:
+        puzzle (list[str]): puzzle
+        n (int): how often to blink
 
-    # Initial arrangement:
-    # 125 17
+    Returns:
+        defaultdict: scores per value
+    """
 
-    # After 1 blink:
-    # 253000 1 7
+    # Store the stones in a defaultdict, this one has always a zero
+    # when there's no key
+    stones = defaultdict(int)
 
-    # After 2 blinks:
-    # 253 0 2024 14168
+    # Fill initial row of stones
+    for i in puzzle:
+        stones[i] += 1
 
-    # After 3 blinks:
-    # 512072 1 20 24 28676032
+    for blink in range(n):
+        logger.info(f'{blink=}')
 
-    # After 4 blinks:
-    # 512 72 2024 2 0 2 4 2867 6032
+        # Add processed stones into a new dict
+        new_stones = defaultdict(int)
 
-    # After 5 blinks:
-    # 1036288 7 2 20 24 4048 1 4048 8096 28 67 60 32
+        # Process all stones
+        for stone, count in stones.items():
+            logger.debug(f'{stone=}, {count=}')
+            if stone == '0':
+                # If 0 on stone, return 1
+                new_stones['1'] += count
 
-    # After 6 blinks:
-    # 2097446912 14168 4048 2 0 2 4 40 48 2024 40 48 80 96 2 8 6 7 6 0 3 2
+            elif len(stone) % 2 == 0:
+                # If length is even, split stone in half
+                half = len(stone) // 2
 
-    # Real input
-    # puzzle = read_puzzle('5 62914 65 972 0 805922 6521 1639064')
+                # Do this for every same stone!
+                new_stones[stone[:half]] += count
+                new_stones[str(int(stone[half:]))] += count
+            else:
+                # Not any of above, return 2024*stone
+                new_stones[str(int(stone) * 2024)] += count
 
-    row = puzzle
-    # print(row)
-    result = []
-    total_counter = Counter()
+        # Update the row of stones
+        stones = new_stones
 
-    for blink in range(2):
-        logger.debug(f'Starting {blink}')
+        # And show it
+        logger.info(stones)
 
-    print(total_counter)
+    result = sum(stones.values())
+    logger.info(f'{result=}')
+
+    return result, stones
 
 
 if __name__ == "__main__":
-    # main()  # 199753
+    # puzzle = read_puzzle('0 1 10 99 999')
+    puzzle = read_puzzle('125 17')
+    # puzzle = read_puzzle('5 62914 65 972 0 805922 6521 1639064')
+    length, stones = main(puzzle, 1)  # 199753
 
-    a = Counter([1, 2, 3])
-    b = Counter({1: -1, 2: 1, 3: 0})
-
-    print(a + b)
+    assert length == 3
+    assert stones == defaultdict(int, {'253000': 1, '1': 1,  '7': 1})

@@ -47,6 +47,6 @@ for startnode in startnodes:
         sum2 += len(list(nx.all_simple_paths(G, startnode, endnode)))
 print(sum1, sum2)
 
-fig, ax = plt.figure()
+# fig, ax = plt.figure()
 
 nx.draw(G)
