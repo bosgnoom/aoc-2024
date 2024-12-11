@@ -74,20 +74,13 @@ def main():
     for blink in range(2):
         logger.debug(f'Starting {blink}')
 
-        result = []
-        for stone in row:
-            result += update_stone(stone)
-
-        row = result
-
-        # logger.info(f'{blink=}, length={len(result)}, unique={
-        #             len(set(result))}, so {len(set(result)) / len(result):%}')
-        logger.info(row)
-        print(Counter(result))
-        total_counter += Counter(result)
-
     print(total_counter)
 
 
 if __name__ == "__main__":
-    main()  # 199753
+    # main()  # 199753
+
+    a = Counter([1, 2, 3])
+    b = Counter({1: -1, 2: 1, 3: 0})
+
+    print(a + b)
