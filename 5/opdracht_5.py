@@ -12,7 +12,15 @@ Question B: Fix those not in order
 """
 
 
-def read_puzzle(filename: str) -> list:
+def read_puzzle(filename: str) -> tuple[list, list]:
+    """Reads puzzle, both parts
+
+    Args:
+        filename (str): filename
+
+    Returns:
+        tuple[list,list]: order of pages and list of pages to be sorted
+    """
     with open(filename) as f:
         lines = f.readlines()
 
