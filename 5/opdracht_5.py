@@ -47,7 +47,16 @@ def read_puzzle(filename: str) -> tuple[list, list]:
     return ordering, pages
 
 
-def check_sequence(page, ordering):
+def check_sequence(page: list, ordering: list[list]) -> bool:
+    """Checks if sequence of pages is in order
+
+    Args:
+        page (list): list of page numbers
+        ordering (list[list]): ordering of the pages
+
+    Returns:
+        bool: checks are all OK
+    """
 
     for order in ordering:
         # check positions in page
@@ -65,8 +74,18 @@ def check_sequence(page, ordering):
     return True
 
 
-def fix_sequence(page, ordering):
-    #
+def fix_sequence(page: list, ordering: list[list]) -> list:
+    """Fix order of pages,
+
+    Do this by flipping positions of pages which are out of order
+
+    Args:
+        page (list): Input pages (book)
+        ordering (list[list]): Needed order
+
+    Returns:
+        list: Reshuffled pages
+    """
 
     for order in ordering:
         # check whether the order items are in the given pages
@@ -87,27 +106,38 @@ def fix_sequence(page, ordering):
     return page
 
 
-ordering, b = read_puzzle('5/input.txt')
+def main(filename: str):
+    """Runs assignment 5 for both part a and b
 
-results_correct = []
-results_incorrect = []
-for page in b:
-    print(f'Pages: {page}', end='')
-    if check_sequence(page, ordering):
-        results_correct.append(page[len(page) // 2])
-    else:
-        fixed = fix_sequence(page, ordering)
-        results_incorrect.append(fixed[len(fixed) // 2])
-    print()
+    Args:
+        filename (str): Puzzle input
 
-print(f'Opdracht 5A: {sum(results_correct)}')  # 7307
-# 123 in example, 4713 in input
-print(f'Opdracht 5B: {sum(results_incorrect)}')
+    Returns:
+        tuple: puzzle output
+    """
+    ordering, books = read_puzzle(filename)
 
-# page = '75,97,47,61,53'
-# page = '61,13,29'
-# page = '97,13,75,29,47'
-# page = [int(p) for p in page.split(',')]
+    results_correct = []
+    results_incorrect = []
 
-# print(page)
-# print(fix_sequence(page, ordering))
+    # Loop over all input
+    for page in books:
+        print(f'Pages: {page}', end='')
+        if check_sequence(page, ordering):
+            results_correct.append(page[len(page) // 2])
+        else:
+            fixed = fix_sequence(page, ordering)
+            results_incorrect.append(fixed[len(fixed) // 2])
+        print('\n')
+
+    # 143 in example, 7307
+    print(f'Opdracht 5A: {sum(results_correct)}')
+
+    # 123 in example, 4713 in input
+    print(f'Opdracht 5B: {sum(results_incorrect)}')
+
+    return sum(results_correct), sum(results_incorrect)
+
+
+if __name__ == "__main__":
+    assert main('5/input.txt') == (7307, 4713)

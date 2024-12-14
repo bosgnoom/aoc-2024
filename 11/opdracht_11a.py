@@ -36,6 +36,9 @@ def update_stone(stone: int) -> list[int]:
 
 
 def main():
+    # Note to self: bruteforce edition, will take too long
+    # for n=75
+
     # puzzle = read_puzzle('0 1 10 99 999')
     # 1 2024 1 0 9 9 2021976
 
@@ -69,7 +72,7 @@ def main():
     # print(row)
     result = []
 
-    for blink in range(75):
+    for blink in range(25):
         logger.info(f'Starting {blink}')
 
         result = []
@@ -82,6 +85,8 @@ def main():
         #             len(set(result))}, so {len(set(result)) / len(result):%}')
     logger.info(result)
     logger.info(len(row))
+
+    return len(result)
 
 
 if __name__ == "__main__":

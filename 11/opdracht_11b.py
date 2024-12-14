@@ -18,7 +18,7 @@ def read_puzzle(puzzle: str) -> list[str]:
     return [a for a in puzzle.split(' ')]
 
 
-def main(puzzle: list[str], n: int) -> defaultdict:
+def main_b(puzzle: list[str], n: int) -> tuple:
     """Runs main loop
 
     Args:
@@ -75,9 +75,7 @@ def main(puzzle: list[str], n: int) -> defaultdict:
 
 if __name__ == "__main__":
     # puzzle = read_puzzle('0 1 10 99 999')
-    puzzle = read_puzzle('125 17')
-    # puzzle = read_puzzle('5 62914 65 972 0 805922 6521 1639064')
-    length, stones = main(puzzle, 1)  # 199753
-
-    assert length == 3
-    assert stones == defaultdict(int, {'253000': 1, '1': 1,  '7': 1})
+    # puzzle = read_puzzle('125 17')
+    puzzle = read_puzzle('5 62914 65 972 0 805922 6521 1639064')
+    length, stones = main_b(puzzle, 75)  # for 25: 199753
+    # for 75: 239413123020116

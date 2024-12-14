@@ -46,8 +46,8 @@ def solve(machine: dict) -> int:
     ax, ay = machine['a']
     bx, by = machine['b']
     x, y = machine['prize']
-    x += 10**13
-    y += 10**13
+    # x += 10**13
+    # y += 10**13
 
     a = np.array([[ax, bx], [ay, by]])
     b = np.array([x, y])
@@ -74,8 +74,8 @@ def solve(machine: dict) -> int:
 
 def main():
 
-    # machines = read_puzzle('13/ex1.txt')
-    machines = read_puzzle('13/input.txt')
+    machines = read_puzzle('13/ex1.txt')
+    # machines = read_puzzle('13/input.txt')
 
     result = []
 

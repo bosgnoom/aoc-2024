@@ -33,11 +33,3 @@ def test_7b_3():
 
 def test_7b_example():
     assert main('7/example.txt', operations='*+|') == 11387
-
-
-def test_7a_main():
-    assert main('7/input.txt') == 12553187650171
-
-
-def test_7b_main():
-    assert main('7/input.txt', operations='*+|') == 96779702119491

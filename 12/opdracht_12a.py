@@ -84,4 +84,4 @@ for region, properties in region_properties.items():
         total_costs += price
         print(f"  Area: {area}, Perimeter: {perimeter}, {price=}")
 
-print(f"Total costs: {total_costs=}")
+print(f"Total costs: {total_costs=}")  # total_costs=1363682
