@@ -1,9 +1,21 @@
 import re
-import pprint
 import numpy as np
+import logging
+import coloredlogs
+
+coloredlogs.install(level='DEBUG')
 
 
 def read_puzzle(filename: str) -> list[dict]:
+    """Reads puzzle from file and converts into input data
+
+    Args:
+        filename (str): filename
+
+    Returns:
+        list[dict]: like {p=0,4 v=3,-3}
+    """
+
     with open(filename) as f:
         lines = [a for a in f.read().split('\n') if len(a) > 1]
 
@@ -11,7 +23,7 @@ def read_puzzle(filename: str) -> list[dict]:
     for i, line in enumerate(lines):
         numbers = re.findall(r'(-?\d+)', line)
 
-        py, px, vy, vx = numbers
+        px, py, vx, vy = numbers
 
         puzzle.append({'p': (int(px), int(py)),
                        'v': (int(vx), int(vy))})
@@ -19,22 +31,32 @@ def read_puzzle(filename: str) -> list[dict]:
     return puzzle
 
 
-def print_map(puzzle, shape):
+def process_map(puzzle: list[dict], shape: tuple[int, int]) -> int:
+    """Prints out the puzzle onto shape (wide, tall)
 
+    Args:
+        puzzle (list[dict]): puzzle data
+        shape (tuple[int, int]): shape of map
+
+    Returns:
+        int: Safety score
+    """
     cols, rows = shape
 
-    map = np.zeros(shape=(rows, cols))
+    # np.zeros in shape(rows, cols)
+    map = np.zeros(shape=(rows, cols), dtype=int)
 
+    # Fill map with robots
     for robot in puzzle:
         x, y = robot['p']
-        map[x, y] += 1
+        map[y, x] += 1
 
-    pprint.pprint(map)
-    for cols in map:
-        print(''.join([str(int(x)) if x > 0 else '.' for x in cols]))
+    # Concat and print
+    for row in map:
+        logging.debug(''.join([str(int(x)) if x > 0 else '.' for x in row]))
 
     # Look up quadrants
-    rows, cols = shape
+    cols, rows = shape
     slice_c = cols // 2
     rows_c = rows // 2
 
@@ -43,14 +65,24 @@ def print_map(puzzle, shape):
     q3 = np.sum(map[-rows_c:, :slice_c])
     q4 = np.sum(map[-rows_c:, -slice_c:])
 
-    # print(q1, q2, q3, q4)
     # Multiply to get to calculate safety factor
     result = np.prod([q1, q2, q3, q4])
-    # print(f'\n\nSafety score: {q1}*{q2}*{q3}*{q4} = {int(result)}')
-    print()
+    logging.info(f'\nSafety score: {q1}*{q2}*{q3}*{q4} = {result}')
+
+    return result
 
 
-def update_positions(puzzle, shape=(11, 7)):
+def update_positions(puzzle: list[dict], shape: tuple) -> list[dict]:
+    """Update position using given velocity
+
+    Args:
+        puzzle (list[dict]): List of robots
+        shape (tuple): size of map
+
+    Returns:
+        list[dict]: New list of robots
+    """
+
     updated_puzzle = []
     for robot in puzzle:
         # Get robot position and direction
@@ -61,25 +93,25 @@ def update_positions(puzzle, shape=(11, 7)):
         rows, cols = shape
 
         # Update position
-        print(f'Old pos: {x=}, {y=}, {robot['v']=}')
+        logging.debug(f'Old pos: {x=}, {y=}, {robot['v']=}')
         x += dx
         y += dy
-        print(f'New pos: {x=}, {y=}')
+        logging.debug(f'New pos: {x=}, {y=}')
 
-        # Fix out of bounds
+        # Update on out-of-bounds
         if y < 0:
-            y += rows
+            y += cols
 
-        if y >= rows:
-            y = y - rows
+        if y >= cols:
+            y = y - cols
 
         if x < 0:
-            x += cols
+            x += rows
 
-        if x >= cols:
-            x = x-cols
+        if x >= rows:
+            x = x-rows
 
-        print(f'New pos: {x=}, {y=}')
+        logging.debug(f'New pos: {x=}, {y=}')
 
         robot['p'] = (x, y)
 
@@ -88,14 +120,22 @@ def update_positions(puzzle, shape=(11, 7)):
     return updated_puzzle
 
 
-# puzzle = (read_puzzle('14/ex1.txt'))
+def main(filename, size):
+    # Puzzle stores positions and velocities
+    puzzle = read_puzzle(filename)
 
-puzzle = [{'p': (2, 4), 'v': (2, -3)}]
-(wide, tall) = (11, 7)
+    result = 0
 
-print_map(puzzle, (wide, tall))
-for i in range(1):
+    process_map(puzzle, size)
+    for i in range(100):
+        puzzle = update_positions(puzzle, size)
+        result = process_map(puzzle, size)
 
-    # shape 11 wide, 7 tall
-    puzzle = update_positions(puzzle)
-    print_map(puzzle, (wide, tall))
+    return result
+
+
+if __name__ == "__main__":
+    # puzzle = [{'p': (2, 4), 'v': (2, -3)}]
+    # puzzle = (read_puzzle('14/ex1.txt'))
+    # main('14/ex1.txt', (11, 7))   # 12
+    main('14/input.txt', (101, 103))  # 230172768
