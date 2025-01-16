@@ -1,0 +1,7 @@
+coloredlogs
+matplotlib
+networkx
+numpy
+PuLP
+pygame
+pytest

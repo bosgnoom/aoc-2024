@@ -1,7 +1,3 @@
-import pprint
-import time
-
-
 def print_puzzle(grid: list[list]) -> None:
     """Prints out the puzzle grid
 
