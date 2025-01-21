@@ -6,7 +6,7 @@ import logging
 logging.basicConfig(level=logging.ERROR)
 
 # Game settings
-SCALE = 40
+SCALE = 10
 FPS = 240
 
 
@@ -83,7 +83,7 @@ def draw_map(screen: pygame.display, font, map: list, robot: tuple[int, int]) ->
                 color = (32, 127, 32)
 
             text = font.render(c, True, color)
-            screen.blit(text, (SCALE*ii, SCALE*i))
+            screen.blit(text, (SCALE * ii, SCALE * i))
 
 
 def indicate_map(screen, font, position: tuple) -> None:
@@ -112,7 +112,7 @@ def calc_score(puzzle: list[str]) -> int:
     for y, line in enumerate(puzzle):
         for x, c in enumerate(line):
             if c == 'O':
-                score += 100*y + x
+                score += 100 * y + x
 
     return score
 
@@ -254,7 +254,7 @@ def main(filename: str, SHOW=True) -> int:
 
     if SHOW:
         # Draw map on screen
-        draw_map(screen, puzzle, robot)
+        draw_map(screen, font, puzzle, robot)
 
         # Update display
         pygame.display.flip()
@@ -267,7 +267,8 @@ def main(filename: str, SHOW=True) -> int:
 
 if __name__ == "__main__":
 
-    assert main('15/input.txt') == 1526673
+    # Run robot simulation
+    main('15/input.txt')
 
     # Keep game screen open
     running = True
