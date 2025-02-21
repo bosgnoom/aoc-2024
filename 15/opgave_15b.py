@@ -4,11 +4,11 @@ import pygame
 import logging
 import coloredlogs
 
-coloredlogs.install(level=logging.DEBUG)
+coloredlogs.install(level=logging.INFO)
 
 # Game settings
-SCALE = 64
-FPS = 1
+SCALE = 24
+FPS = 100
 
 
 def read_puzzle(filename: str) -> tuple[list, list]:
@@ -77,14 +77,13 @@ def find_robot(map: list[str]) -> tuple[tuple[int, int], list[str]]:
         map (list[str]): Puzzle map
 
     Returns:
-        tuple, list[str]: Position (x, y) of robot and updated map (removed @)
+        tuple, list[str]: Position (x, y) of robot and updated map 
     """
     for y, line in enumerate(map):
         for x, col in enumerate(line):
             if col == '@':
-                # Reset robot position to empty
+                # Robot found, returning position
                 map[y][x] = '.'
-
                 return (x, y), map
 
 
@@ -111,7 +110,7 @@ def draw_map(screen: pygame.display,
             if c == '@':
                 color = (255, 255, 255)
                 c = '⚙︎'  # lol unicode kinda works!
-            elif c == 'O':
+            elif c in '[O]':
                 color = (127, 255, 127)
             elif c == '.':
                 color = (64, 255, 64)
@@ -132,6 +131,8 @@ def indicate_map(screen, font, puzzle, position: tuple) -> None:
     """
     x, y = position
     c = puzzle[y][x]
+    if c == '.':
+        c = '·'
     text = font.render(c, True, (63, 127, 255))
     screen.blit(text, (SCALE * x, SCALE * y))
     pygame.display.flip()
@@ -155,7 +156,18 @@ def calc_score(puzzle: list[str]) -> int:
     return score
 
 
-def main(filename: str, SHOW=True) -> int:
+def calc_pos(robot, offset):
+    """Calculate new position for robot
+
+    Args:
+        robot (_type_): _description_
+        offset (_type_): _description_
+    """
+
+    return (robot[0] + offset[0], robot[1] + offset[1])
+
+
+def main_b(filename: str, SHOW=True) -> int:
     """Runs a gamefile
 
     Args:
@@ -173,13 +185,12 @@ def main(filename: str, SHOW=True) -> int:
     font = pygame.font.SysFont('freemono', size=SCALE)
 
     # Read puzzle
-    puzzle, directions = read_puzzle(filename)
-    puzzle = preprocess_map(puzzle)
+    puzzle_raw, directions = read_puzzle(filename)
+    puzzle = preprocess_map(puzzle_raw)
 
     # Find robot
     robot, puzzle = find_robot(puzzle)
-    x, y = robot
-    logger.info(f'Found robot at: {x}, {y}')
+    logger.info(f'Found robot at: {robot}')
 
     # Debugging info
     logger.debug(directions)
@@ -192,18 +203,22 @@ def main(filename: str, SHOW=True) -> int:
     if SHOW:
         screen = pygame.display.set_mode([size_x, size_y])
 
-    # Keep track of which direction step we're at
-    step = 0
+    # For where to look depening on direction and found box edge
+    OFFSETS = {
+        "<": (-1, 0),
+        ">": (1, 0),
+        "^": (0, -1),
+        "v": (0, 1),
 
-    # Exit pygame loop?
-    running = True
+        "[": (1, 0),  # if found [ look to the right
+        "]": (-1, 0),  # else look to the left for a ]
+    }
 
-    # Game loop
-    while running and (step < len(directions)):
+    # Loop over all the steps in directions
+    for move in directions:
         # First, check if pygame wants to quit
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
                 pygame.quit()
                 exit()
 
@@ -214,252 +229,166 @@ def main(filename: str, SHOW=True) -> int:
             # Update display
             pygame.display.flip()
 
-        # Update map for given direction
-        # Get robot position
-        x, y = robot
+        # Calculate possible new position of robot
+        offset = OFFSETS[move]
+        x, y = calc_pos(robot, offset)
+        logger.info(f'Robot: {robot}, move: {move}')
 
-        # Use a loop to find out whether the robot can move:
-        # - For a #: hit wall, nope, no movement
-        # - For a O: add cell to "waiting list", will push if ends with '.' else end move
-        # - For a .: yes, move possible
-        logger.info(f'{step} Robot at {x},{y}, dir={directions[step]}')
+        # Check new position, this is either a block, a wall or an empty space
+        if puzzle[y][x] in "[]":
+            # Encountered a block
 
-        # Have an empty waiting list for possible moves (when '[]' is encountered)
-        waiting_list = []
+            # Check move
+            if move in "<>":
+                # For the "easy" part: left/right movement is similar to assignment A
 
-        # While loop to determine new position
-        while True:
-            # Update position
-            if directions[step] == '<':
-                # Left
-                x = x - 1
-            elif directions[step] == '>':
-                # Right
-                x = x + 1
-            elif directions[step] == '^':
-                # Up
-                y = y - 1
-            elif directions[step] == 'v':
-                # Down
-                y = y + 1
+                # Store new position in a list
+                check_list = [(x, y)]
 
-            # Checks for the NEW position
-            if directions[step] in '<>':
+                # Continue checking in the `move` direction
+                while puzzle[y][x] in "[]":
+                    # if SHOW:
+                    #     indicate_map(screen, font, puzzle, (x, y))
+                    #     timert.tick(FPS)
+
+                    x, y = calc_pos((x, y), offset)
+                    check_list.append((x, y))
+
+                # if SHOW:
+                #     indicate_map(screen, font, puzzle, (x, y))
+                #     timert.tick(FPS)
+
+                # Hit something else than a box; either a wall or a free position
                 if puzzle[y][x] == '#':
-                    # Is a wall
-                    logger.debug(f'Found wall at {x}, {y}. No movement possible, next step {step}/{len(directions)-1}')
-                    step += 1
-
-                    break
-
+                    continue
                 elif puzzle[y][x] == '.':
-                    # Performs left and right movement (easy part)
+                    # Free position, update puzzle
+                    logging.debug(f'Found empty position, {check_list=}')
 
-                    logger.debug(f'Found empty position at {x}, {y}. Updating left/right positions...')
-                    waiting_list.append((x, y))
+                    # Move boxes step by step
+                    while len(check_list) > 1:
+                        x1, y1 = check_list.pop()   # Get the last one
+                        x2, y2 = check_list[-1]     # And next-to-last one
+                        puzzle[y1][x1] = puzzle[y2][x2]   # Update box info
 
-                    # How long the waiting list is
-                    while len(waiting_list) > 1:
-                        # Yes, so update multiple items (i.e. the []'s)
-                        pos = waiting_list.pop()
-                        x, y = pos
+                    # Last position is now free for the robot
+                    puzzle[y2][x2] = '.'
+                    robot = (x2, y2)
 
-                        logger.debug(f'Found {pos} in waiting list')
+                else:
+                    logger.critical(f'Error in puzzle: {puzzle[y][x]}')
 
-                        if directions[step] == '<':
-                            # Left movement
-                            puzzle[y][x] = puzzle[y][x+1]
+            elif move in "^v":
+                # The hard part: up/down will move in at least 2 columns https://github.com/xavdid/advent-of-code/blob/main/solutions/2024/day_15/solution.py
 
-                        if directions[step] == '>':
-                            # Right movement
-                            puzzle[y][x] = puzzle[y][x-1]
+                # Add found box piece and corresponding one to check_list
+                x2, y2 = calc_pos((x, y), OFFSETS[puzzle[y][x]])
+                check_list = [[(x, y), (x2, y2)]]
 
-                    # Now update robot position
-                    x, y = waiting_list[0]
-                    logger.debug(f'Last one in waiting list: {x}, {y}')
-                    puzzle[y][x] = '.'
-                    robot = (x, y)
+                # Show on screen
+                # if SHOW:
+                #     for cell in check_list[0]:
+                #         indicate_map(screen, font, puzzle, cell)
+                #         timert.tick(FPS)
 
-                    # Prepare for next step
-                    step += 1
+                logger.debug(f'Up down starting, {check_list=}')
 
-                    break
+                # Boolean to store whether move is possible
+                move_possible = True
 
-                elif puzzle[y][x] in '[]':
-                    # Found a piece of a box in left/right movement (still easy part)
+                # Now loop over the puzzle checking up/downwards for further boxes
+                while True:
+                    # Switch to a set to prevent storing double items
+                    logger.debug(check_list[-1])
+                    next_row = {calc_pos(cell, offset) for cell in check_list[-1]}
+                    logger.debug(f'{next_row=}')
 
-                    logger.debug('Found box, checking further...')
+                    # Check for boxes above/below current
+                    new_boxes = {calc_pos((xx, yy), OFFSETS[puzzle[yy][xx]])
+                                 for xx, yy in next_row
+                                 if puzzle[yy][xx] in "[]"}
+                    logger.debug(f'{new_boxes=}')
 
-                    # Add this position to the waiting list
-                    waiting_list.append((x, y))
+                    next_row.update(new_boxes)
+                    logger.debug(f'{next_row=}')
 
-                    # Show on the map what we're evaluating
-                    if SHOW:
-                        indicate_map(screen, font, puzzle, (x, y))
-                        timert.tick(FPS)
+                    # Show on screen
+                    # if SHOW:
+                    #     for cell in next_row:
+                    #         indicate_map(screen, font, puzzle, cell)
+                    #         timert.tick(FPS)
 
-                    logger.debug(f'{robot} {waiting_list}')
-            else:
-                # Up/down movement
+                    # Check whether the new cells are indeed boxes,
+                    for xx, yy in next_row:
+                        logger.debug(puzzle[yy][xx])
+                        if puzzle[yy][xx] == "#":
+                            # WE've hit a wall, stopping here
+                            logger.debug("Hit a wall, aborting move")
+                            move_possible = False
+                            # Escape from while loop
+                            break
 
-                if puzzle[y][x] == '.':
-                    # Performs up/down movement
-                    # Needs work, only robot moves now...
-                    logger.debug(f'Found empty position at {x}, {y}. Updating up/down positions...')
-                    if directions[step] == '^':
-                        # Up movement
-                        puzzle[y][x] = puzzle[y-1][x]
-
-                    if directions[step] == 'v':
-                        # Down movement
-                        puzzle[y][x] = puzzle[y+1][x]
-
-                    puzzle[y][x] = '.'
-                    robot = (x, y)
-
-                    # Prepare for next step
-                    step += 1
-
-                    break
-
-                elif puzzle[y][x] in '[]':
-                    # Found a piece of a box in up/down movement (hard part)
-
-                    logger.debug('Found box, checking further...')
-
-                    # Add positions to the waiting list
-                    if puzzle[y][x] == '[':
-                        waiting_list.append([(x, y), (x+1, y)])
+                    # if so, add them to the check_list
+                    new_boxes = [(xx, yy) for xx, yy in next_row if puzzle[yy][xx] in "[]"]
+                    logger.debug(f'{new_boxes=}')
+                    if new_boxes:
+                        check_list.append(new_boxes)
                     else:
-                        waiting_list.append([(x, y), (x-1, y)])
+                        # Empty new_boxes, so we can move!
+                        # Exit while loop using break
+                        logger.debug('No new boxes found, <break>')
+                        break
 
-                    # Show on the map what we're evaluating
-                    if SHOW:
-                        for i in waiting_list[-1]:
-                            indicate_map(screen, font, puzzle, i)
-                        timert.tick(FPS)
+                if move_possible:
+                    logger.debug('Updating puzzle')
+                    # Loop over all rows, starting with the last one
+                    for row in check_list[::-1]:
+                        for cell in row:
+                            # For each cell in the row,
+                            # Calculate new position
+                            x2, y2 = calc_pos(cell, offset)
 
-                    last_loop = True
-                    while last_loop:
-                        logger.info(f'last loop, checking: {waiting_list[-1]}')
+                            # Get old position
+                            x1, y1 = cell
 
-                        check_list = []
+                            # Update new position data with old position one
+                            puzzle[y2][x2] = puzzle[y1][x1]
 
-                        for i in waiting_list[-1]:
-                            xx, yy = i
-                            logger.info(f'Checking on {i}: {puzzle[yy][xx]}')
+                            # Clear old position
+                            puzzle[y1][x1] = '.'
 
-                            # check direction
-                            if directions[step] == '^':
-                                yy = yy - 1
-                            else:
-                                yy = yy + 1
+                            # Show on screen
+                            # if SHOW:
+                            #     indicate_map(screen, font, puzzle, cell)
+                            #     timert.tick(FPS)
 
-                            # check end of move
-                            if puzzle[yy][xx] == '#':
-                                # No move possible, exit
-                                logger.debug('Found #, no move possible')
+                    # Finally, set robot to new position
+                    robot = (x, y)
+                else:
+                    logger.debug('No move possible')
 
-                                # Reset all things
-                                waiting_list = []
-                                last_loop = False
-                                step = step + 1
+            else:
+                logger.critical(f'Illegal move: {move}')
+                exit(-1)
 
-                                break
+        elif puzzle[y][x] == "#":
+            # Hit a wall, process next move
+            # Go back to the top of the for loop,
+            # Speeds up animation, otherwise use _pass_ here
+            continue
 
-                            # else left box
-                            elif puzzle[yy][xx] == '[':
-                                check_list.append((xx, yy))
-                                check_list.append((xx+1, yy))
+        elif puzzle[y][x] == '.':
+            # Ok to move, update robot position
+            robot = (x, y)
 
-                            # or right box
-                            elif puzzle[y][x] == ']':
-                                check_list.append((xx, yy))
-                                check_list.append((xx-1, yy))
-
-                        # REmove duplicates from check_list:
-                        check_list = list(set(check_list))
-
-                        logger.info(f'After checking {check_list=}')
-
-                        if check_list:
-                            # Check whether all current in last waiting list are .
-                            all_dots = True
-                            logger.info(f'all dots check {check_list=}')
-
-                            for i in check_list:
-                                xx, yy = i
-                                if puzzle[yy][xx] != '.':
-                                    all_dots = False
-
-                            if all_dots:
-                                logging.info("All dots! Clear to go!")
-                                last_loop = False
-                                # TODO: update positions and exit this while loop
-
-                                while len(waiting_list) > 0:
-                                    # Yes, so update multiple items (i.e. the []'s)
-                                    posis = waiting_list.pop()
-                                    for pos in posis:
-                                        logger.debug(f'Moving {pos=}')
-                                        xx, yy = pos
-
-                                        logger.debug(f'Found {pos} in waiting list')
-
-                                        if directions[step] == '^':
-                                            # Up movement
-                                            puzzle[yy-1][xx] = puzzle[yy][xx]
-
-                                        if directions[step] == 'v':
-                                            # Down movement
-                                            puzzle[yy+1][xx] = puzzle[yy][xx]
-
-                                            if SHOW:
-                                                # Draw map on screen
-                                                draw_map(screen, font, puzzle, robot)
-
-                                                # Update display
-                                                pygame.display.flip()
-
-                                # Now update robot position
-                                # x, y = waiting_list[0]
-                                # logger.debug(f'Last one in waiting list: {x}, {y}')
-                                # puzzle[y][x] = '.'
-                                if directions[step] == '^':
-                                    # Up movement
-                                    robot = (x, y-1)
-
-                                elif directions[step] == 'v':
-                                    # Down movement
-                                    robot = (x, y+1)
-
-                                # Prepare for next step
-                                step += 1
-
-                                last_loop = False
-
-                                break
-
-                            else:
-                                logging.info("not all dots, adding checklist to waiting list")
-                                waiting_list.append(check_list)
-
-                                logger.critical(f'{check_list=}')
-                                logger.critical(f'{waiting_list=}')
-                        else:
-                            # TODO: update positions in waiting list
-                            logger.critical("Updating positions here!")
-
-                        # Show on the map what we're evaluating
-                        if SHOW:
-                            for i in waiting_list[-1]:
-                                indicate_map(screen, font, puzzle, i)
-                            timert.tick(FPS)
-
-                    logger.debug(f'{robot} {waiting_list}')
+        else:
+            # This should not be happening, exiting!
+            logger.critical(f'Unknown item in puzzle map: {puzzle[y][x]}')
+            exit(-1)
 
         # Wait a bit and continue
         if SHOW:
+            logger.debug('FPS')
             timert.tick(FPS)
 
     logger.info('\nAll steps complete!')
@@ -479,7 +408,7 @@ def main(filename: str, SHOW=True) -> int:
 
 if __name__ == "__main__":
 
-    main('15/ex3.txt')
+    main_b('15/input.txt')  # 1535509
 
     # Keep game screen open
     running = True

@@ -6,7 +6,7 @@ import logging
 logging.basicConfig(level=logging.ERROR)
 
 # Game settings
-SCALE = 10
+SCALE = 24
 FPS = 240
 
 
@@ -117,7 +117,7 @@ def calc_score(puzzle: list[str]) -> int:
     return score
 
 
-def main(filename: str, SHOW=True) -> int:
+def main_a(filename: str, SHOW=True) -> int:
     """Runs a gamefile
 
     Args:
@@ -268,7 +268,7 @@ def main(filename: str, SHOW=True) -> int:
 if __name__ == "__main__":
 
     # Run robot simulation
-    main('15/input.txt')
+    main_a('15/input.txt')
 
     # Keep game screen open
     running = True
