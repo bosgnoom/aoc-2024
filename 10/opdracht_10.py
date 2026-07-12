@@ -48,10 +48,12 @@ def main(filename):
             sum2 += len(list(nx.all_simple_paths(G, startnode, endnode)))
     print(sum1, sum2)
 
-    # fig, ax = plt.figure()
+    # print('Draw')
 
-    # nx.draw(G)
+    # ax = plt.gca()
+    # nx.draw_networkx(G)
+    # plt.show()
 
 
 if __name__ == "__main__":
-    main('10/input.txt')
+    main('10/example.txt')

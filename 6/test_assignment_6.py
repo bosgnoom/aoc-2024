@@ -1,7 +1,10 @@
+from opdracht_6b import opdracht_6b, process_dot
+from opdracht_6a import opdracht_6a, read_puzzle, find_elf
 import pytest
 
-from opdracht_6a import opdracht_6a, read_puzzle, find_elf
-from opdracht_6b import opdracht_6b, process_dot
+# Added this to prevent pytest from complaining about fork()-ing processes
+import multiprocessing as mp
+mp.set_start_method("spawn", force=True)
 
 
 @pytest.fixture
